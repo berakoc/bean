@@ -1,1 +1,5 @@
-console.log('Script is ready');
+listeners = {
+  increment([counter, setCounter]) {
+    setCounter(counter + 1);
+  }
+}

@@ -1,5 +1,11 @@
+const selectCounter = (state) => state.counter;
+
 listeners = {
-  increment([counter, setCounter]) {
-    setCounter(counter + 1);
+  updateText(getValue, _, setState) {
+    setState('text', getValue());
+  },
+  increment(getState, setState) {
+    console.log(getState())
+    setState('counter', selectCounter(getState()) + 1);
   }
 }

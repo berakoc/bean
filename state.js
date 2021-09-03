@@ -1,125 +1,103 @@
 (() => {
   const $ = (query, context = document) => context.querySelectorAll(query);
+  const is = Object.is;
+  const type = v => typeof(v);
 
-  const Bean = (() => {
-    let hooks = [];
-    let idx = 0;
-    const inject = (initialValue) => {
-      let state = hooks[idx] || initialValue;
-      const _idx = idx;
-      const setState = (newVal) => {
-        hooks[_idx] = newVal;
-      };
-      idx++;
-      return [state, setState];
-    };
-    const render = (Component) => {
-      debugger;
-      idx = 0;
-      const C = Component();
-      C.render();
-      return C;
-    };
-    const onMount = (cb, depArray) => {
-      const oldDeps = hooks[idx];
-      let hasChanged = true;
-      if (oldDeps) {
-        hasChanged = depArray.some((dep, i) => !Object.is(dep, oldDeps[i]));
-      }
-      if (hasChanged) cb();
-      hooks[idx] = depArray;
-      idx++;
-    };
+  const getStateHandlers = () => $('[bean]');
+
+  const getGlobalListener = (listenerName) => listeners[listenerName];
+
+  const StateHandler = (() => {
+    let state = {};
     return {
-      inject,
-      render,
-      onMount,
-    };
+      getState: () => state,
+      setState: (key, value) => {
+        if(is(state[key], value)) return;
+        state = ({
+          ...state,
+          [key]: value
+        });
+      }
+    }
   })();
 
-  const getBeans = () => $('[bean]');
-  const states = {};
+  const StateHandlerTuple = [StateHandler.getState, StateHandler.setState];
 
-  const identity = (v) => v;
-  const pluck = key => o => o[key];
-  const pipe =
-  (...fs) =>
-  (...args) =>
-      fs.reduce(
-          (F, f) => () => [f(...[].concat(F()))],
-          () => args
-      )()[0];
+  const stringToObject = (value, options = { isArray: false, isString: false }) =>
+    options.isString
+      ? value.replace(/'/g, '')
+      : JSON.parse(options.isArray 
+        ? value.replace(/'/g, '"') 
+        : value
+  );
 
-  (generateId = function* () {
-    for (let i = 1; ; ++i) yield i;
-  })();
+  const createStateContainers = (stringTokens, stateId, value) => {
+    const HTMLFragments = [];
+    stringTokens.forEach((stringToken, idx) => {
+      HTMLFragments.push(stringToken);
+      if (idx !== stringTokens.length - 1) {
+        const stateContainer = document.createElement('span');
+        stateContainer.innerText = value;
+        stateContainer.setAttribute(stateId, '');
+        HTMLFragments.push(stateContainer);
+      }
+    });
+    return HTMLFragments;
+  }
 
-  const getId = (idGenerator) => idGenerator.next().value;
-
-  const fromAttribute =
-    (value, options={ isArray: false }) => JSON.parse(
-      options.isArray
-      ? value.replace(/'/g, "\"")
-      : value
+  const initialRender = (bean, stateId) => {
+    const rawInitialValue = bean.getAttribute('init');
+    const value = stringToObject(rawInitialValue, {
+      isString: Boolean(~rawInitialValue.indexOf('\''))
+    });
+    StateHandler.setState(stateId, value);
+    $(`[${stateId}]`, bean).forEach(
+      (node) => {
+        node.hasAttribute(stateId) && node.removeAttribute(stateId);
+        const stringTokens = node.innerHTML.split(`$state`);
+        const HTMLFragments = createStateContainers(stringTokens, stateId, value);
+        const enhancedHTML = HTMLFragments.map(HTMLFragment => is(type(HTMLFragment), 'string') ? document.createTextNode(HTMLFragment) : HTMLFragment);
+        node.innerHTML = null;
+        node.append(...enhancedHTML);
+      }
     );
-
-  const injectState = (bean, stateId) => {
-    const initialValue = fromAttribute(bean.getAttribute('init'));
-    const Component = () => {
-      [state, setState] = Bean.inject(initialValue);
-      return {
-        render: () => null,
-        access: (handler) => handler([state, setState]),
-      };
-    };
-    const instance = Bean.render(Component);
-    instance.access(([counter, setCounter]) => setCounter(1));
-    Bean.render(Component);
-    $(`[${stateId}]`, bean)
-      .forEach(
-        (node) =>
-          (node.innerText = node.innerText.replace(/\$[a-z-]+/g, () =>
-            instance.access(
-              pipe(([value]) => (states[stateId] = value), identity),
-            )
-          ))
-      );
-    return [instance, Component];
   };
 
-  const injectActions = (bean, stateId, instance, render) => {
+  const render = (bean, stateId) => {
+    const value = StateHandler.getState()[stateId];
+    $(`[${stateId}]`, bean).forEach(
+      (node) => node.innerText = value
+    );
+  };
+
+  const injectActions = (bean, stateId) => {
     const actionAttributeName = `action-${stateId}`;
     const actionElements = $(`[${actionAttributeName}]`, bean);
     actionElements.forEach(actionElement => {
-      const [listenerName, type]
-        = fromAttribute(actionElement.getAttribute(actionAttributeName), {
-          isArray: true
-        });
-
-      actionElement.addEventListener(
-        type,
-        instance
-          .access((stateTuple) => () => {
-            listeners[listenerName](stateTuple);
-            render();
-          })
-      );
+      const [listenerName, type] = stringToObject(actionElement.getAttribute(actionAttributeName), {
+        isArray: true
+      });
+      actionElement.addEventListener(type, () => {
+        let _actionElement = actionElement;
+        actionElement instanceof HTMLInputElement
+          ? getGlobalListener(listenerName)(() => _actionElement['value'], ...StateHandlerTuple)
+          : getGlobalListener(listenerName)(...StateHandlerTuple);
+        render(bean, stateId);
+      });
     });
   };
 
   const injectFragments = (beans) => {
     beans.forEach((bean) => {
       const stateId = bean.getAttribute('state');
-      const [instance, Component] = injectState(bean, stateId);
-      const render = () => Bean.render(Component);
-      injectActions(bean, stateId, instance, render);
+      initialRender(bean, stateId);
+      injectActions(bean, stateId);
     });
   };
 
   const init = () => {
-    const beans = getBeans();
+    const beans = getStateHandlers();
     injectFragments(beans);
-    console.log(states);
   };
 
   init();

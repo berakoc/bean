@@ -1,6 +1,11 @@
 <script type="text/javascript" src="script.js" defer></script>
 <script type="text/javascript" src="state.js" defer></script>
+<div state="text" init="'Hello'" bean>
+	<div text>Current Input: $state</div>
+	<input action-text="['updateText', 'keyup']" />
+</div>
+<br/>
 <div state="counter" init="0" bean>
-	<pre counter>Counter: $state</pre>
+	<div counter>Counter: $state</div>
 	<button action-counter="['increment', 'click']">Increment</button>
 </div>

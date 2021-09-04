@@ -1,4 +1,7 @@
-echo "Build is about to start"
+LIGHT_PURPLE='\033[1;35m'
+NC="\033[0m"
+
+printf "${LIGHT_PURPLE}Build is about to start"
 echo "Clearing dist folder..."
 rm -rf dist
 echo "Dist folder is removed"

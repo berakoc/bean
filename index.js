@@ -1,8 +1,13 @@
 const U = {
   $: (query, context = document) => context.querySelectorAll(query),
-  curry: (f) => U.type(f) === U.types.function ? f : (...args) => f.bind(null, ...args),
+  curry: (f) =>
+    U.isNot(U.type(f), U.types.function )? f : (...args) => f.bind(null, ...args),
   is: Object.is,
   isNot: (v1, v2) => !U.is(v1, v2),
+  not:
+    (f) =>
+    (...args) =>
+      !f(...args),
   type: (v) => typeof v,
   stringToObject: (value, options = { isArray: false, isString: false }) =>
     options.isString
@@ -10,17 +15,21 @@ const U = {
       : JSON.parse(options.isArray ? value.replace(/'/g, '"') : value),
   and: (bool1, bool2) => bool1 && bool2,
   deepCompare: (o1, o2) => {
-    const o1Keys = Object.keys(o1)
+    const o1Keys = Object.keys(o1);
     const o2Keys = Object.keys(o2);
     if (U.isNot(o1Keys.length, o2Keys.length)) return false;
     let result = true;
     for (const key of o1Keys) {
       const val1 = o1[key];
       const val2 = o2[key];
-      result = result && U.and(
-        U.is(U.type(val1), U.types.object),
-        U.is(U.type(val2), U.types.object)
-      ) ? U.deepCompare(val1, val2) : U.is(val1, val2);
+      result =
+        result &&
+        U.and(
+          U.is(U.type(val1), U.types.object),
+          U.is(U.type(val2), U.types.object)
+        )
+          ? U.deepCompare(val1, val2)
+          : U.is(val1, val2);
       if (U.is(result, false)) return result;
     }
     return result;
@@ -28,17 +37,28 @@ const U = {
   types: {
     object: 'object',
     string: 'string',
-    function: 'function'
-  }
+    function: 'function',
+  },
 };
 
 (() => {
+  const ChangeDetector = {
+    detect(current, previous) {
+      return U.and(
+        U.is(U.type(current), U.types.object),
+        U.is(U.type(previous), U.types.object)
+      )
+        ? !U.deepCompare(current, previous)
+        : U.isNot(current, previous);
+    },
+  };
+
   const StateHandler = (() => {
     let state = {};
     return {
       getState: () => state,
       setState: (key, value) => {
-        if (U.is(state[key], value)) return;
+        if (!ChangeDetector.detect(state[key], value)) return;
         state = {
           ...state,
           [key]: value,
@@ -47,7 +67,7 @@ const U = {
     };
   })();
 
-  const StateHandlerTuple = [StateHandler.getState, StateHandler.setState];
+  const selectState = (selector, key) => [() => selector(StateHandler.getState()), (value) => U.curry(StateHandler.setState)(key)(value)];
   const getStateHandlers = () => U.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
 
@@ -105,9 +125,9 @@ const U = {
         actionElement instanceof HTMLInputElement
           ? getGlobalListener(listenerName)(
               () => _actionElement['value'],
-              ...StateHandlerTuple
+              ...selectState(state => state[stateId], stateId)
             )
-          : getGlobalListener(listenerName)(...StateHandlerTuple);
+          : getGlobalListener(listenerName)(...selectState(state => state[stateId], stateId));
         render(bean, stateId);
       });
     });

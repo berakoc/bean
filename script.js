@@ -1,10 +1,8 @@
-const selectCounter = (state) => state.counter;
-
 listeners = {
-  updateText(getValue, _, setState) {
-    setState('text', getValue());
+  updateText(getValue, _, setText) {
+    setText( getValue());
   },
-  increment(getState, setState) {
-    setState('counter', selectCounter(getState()) + 1);
+  increment(getCounter, setCounter) {
+    setCounter(getCounter() + 1);
   }
 }

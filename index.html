@@ -1,4 +1,4 @@
-<script type="text/javascript" src="script.js" defer>
+<script type="text/javascript" defer>
 	listeners = {
 	  updateText(getValue, _, setText) {
 	    setText( getValue());
@@ -8,7 +8,7 @@
 	  }
 	}
 </script>
-<script type="text/javascript" src="dist/index.js" defer></script>
+<script type="text/javascript" src="dist/index.min.js" defer></script>
 <div state="text" init="'Hello'" bean>
 	<div text>Current Input: $state</div>
 	<input action-text="['updateText', 'keyup']" />

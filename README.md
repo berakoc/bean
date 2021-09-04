@@ -1,7 +1,2 @@
 # bean
-A JavaScript state manager
-
-## Todos
-- [ ] Change detector(Reconcialation)
-- [ ] Memoized selectors (State select function)
-- [x] Input handling
+A declaritive, template-based state manager for JavaScript

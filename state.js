@@ -14,7 +14,7 @@ const Utils = {
     return {
       getState: () => state,
       setState: (key, value) => {
-        if (is(state[key], value)) return;
+        if (Utils.is(state[key], value)) return;
         state = {
           ...state,
           [key]: value,
@@ -24,7 +24,7 @@ const Utils = {
   })();
 
   const StateHandlerTuple = [StateHandler.getState, StateHandler.setState];
-  const getStateHandlers = () => $('[bean]');
+  const getStateHandlers = () => Utils.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
 
   const createStateContainers = (stringTokens, stateId, value) => {
@@ -43,16 +43,16 @@ const Utils = {
 
   const initialRender = (bean, stateId) => {
     const rawInitialValue = bean.getAttribute('init');
-    const value = stringToObject(rawInitialValue, {
+    const value = Utils.stringToObject(rawInitialValue, {
       isString: Boolean(~rawInitialValue.indexOf("'")),
     });
     StateHandler.setState(stateId, value);
-    $(`[${stateId}]`, bean).forEach((node) => {
+    Utils.$(`[${stateId}]`, bean).forEach((node) => {
       node.hasAttribute(stateId) && node.removeAttribute(stateId);
       const stringTokens = node.innerHTML.split(`$state`);
       const HTMLFragments = createStateContainers(stringTokens, stateId, value);
       const enhancedHTML = HTMLFragments.map((HTMLFragment) =>
-        is(type(HTMLFragment), 'string')
+        Utils.is(Utils.type(HTMLFragment), 'string')
           ? document.createTextNode(HTMLFragment)
           : HTMLFragment
       );
@@ -63,14 +63,14 @@ const Utils = {
 
   const render = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
-    $(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
+    Utils.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
   const injectActions = (bean, stateId) => {
     const actionAttributeName = `action-${stateId}`;
-    const actionElements = $(`[${actionAttributeName}]`, bean);
+    const actionElements = Utils.$(`[${actionAttributeName}]`, bean);
     actionElements.forEach((actionElement) => {
-      const [listenerName, type] = stringToObject(
+      const [listenerName, type] = Utils.stringToObject(
         actionElement.getAttribute(actionAttributeName),
         {
           isArray: true,

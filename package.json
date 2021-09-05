@@ -1,12 +1,17 @@
 {
-  "name": "bean",
+  "name": "@berakocc/bean",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.1",
   "description": "An imperative, template-based state manager for JavaScript",
   "main": "dist/index.js",
   "scripts": {
     "postinstall": "chmod +x scripts/*.sh",
+    "prepublishOnly": "npm run build",
     "build": "./scripts/build.sh",
-    "test": "jest --env=jsdom"
+    "test": "jest --env=jsdom",
+    "package:size": "npm pack --dry-run"
   },
   "husky": {
     "hooks": {

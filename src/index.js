@@ -66,7 +66,8 @@ const U = {
     return {
       getState: () => state,
       setState: (key, value) => {
-        if (!ChangeDetector.detect(state[key], value)) return _shouldUpdate = false;
+        if (!ChangeDetector.detect(state[key], value))
+          return (_shouldUpdate = false);
         state = {
           ...state,
           [key]: value,
@@ -75,7 +76,7 @@ const U = {
       },
       get shouldUpdate() {
         return _shouldUpdate;
-      }
+      },
     };
   })();
 
@@ -120,7 +121,8 @@ const U = {
 
   const render = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
-    StateHandler.shouldUpdate && U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
+    StateHandler.shouldUpdate &&
+      U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
   const addListenerByParams = (element, listenerName, stateId) =>

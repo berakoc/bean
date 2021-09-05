@@ -1,7 +1,9 @@
 const U = {
   $: (query, context = document) => context.querySelectorAll(query),
   curry: (f) =>
-    U.isNot(U.type(f), U.types.function )? f : (...args) => f.bind(null, ...args),
+    U.isNot(U.type(f), U.types.function)
+      ? f
+      : (...args) => f.bind(null, ...args),
   is: Object.is,
   isNot: (v1, v2) => !U.is(v1, v2),
   not:
@@ -67,7 +69,10 @@ const U = {
     };
   })();
 
-  const selectState = (selector, key) => [() => selector(StateHandler.getState()), (value) => U.curry(StateHandler.setState)(key)(value)];
+  const selectState = (selector, key) => [
+    () => selector(StateHandler.getState()),
+    (value) => U.curry(StateHandler.setState)(key)(value),
+  ];
   const getStateHandlers = () => U.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
 
@@ -125,9 +130,11 @@ const U = {
         actionElement instanceof HTMLInputElement
           ? getGlobalListener(listenerName)(
               () => _actionElement['value'],
-              ...selectState(state => state[stateId], stateId)
+              ...selectState((state) => state[stateId], stateId)
             )
-          : getGlobalListener(listenerName)(...selectState(state => state[stateId], stateId));
+          : getGlobalListener(listenerName)(
+              ...selectState((state) => state[stateId], stateId)
+            );
         render(bean, stateId);
       });
     });

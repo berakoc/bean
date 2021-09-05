@@ -8,6 +8,12 @@ printf "${LIGHT_PURPLE}Build is about to start\n"
 printf "${LIGHT_YELLOW}Formatting the code...\n"
 npx prettier --check --write src/index.js
 printf "${LIGHT_GREEN}Source code is formatted\n"
+printf "${LIGHT_YELLOW}Adding formatted codes to git...\n"
+git add -A
+printf "${LIGHT_GREEN}Formatted codes are added to git\n"
+printf "${LIGHT_YELLOW}Running tests...\n"
+npm test
+printf "${LIGHT_GREEN}Tests are passed successfully\n"
 printf "${LIGHT_YELLOW}Clearing dist folder...\n"
 rm -rf dist
 printf "${LIGHT_GREEN}Dist folder is removed\n"

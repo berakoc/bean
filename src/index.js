@@ -44,7 +44,7 @@ const U = {
     string: 'string',
     function: 'function',
     boolean: 'boolean',
-    number: 'number'
+    number: 'number',
   },
 };
 
@@ -118,14 +118,15 @@ const U = {
     U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
-  const addListenerByParams = (element, listenerName, stateId) => element instanceof HTMLInputElement
-  ? getGlobalListener(listenerName)(
-      () => element['value'],
-      ...selectState((state) => state[stateId], stateId)
-    )
-  : getGlobalListener(listenerName)(
-      ...selectState((state) => state[stateId], stateId)
-    );
+  const addListenerByParams = (element, listenerName, stateId) =>
+    element instanceof HTMLInputElement
+      ? getGlobalListener(listenerName)(
+          () => element['value'],
+          ...selectState((state) => state[stateId], stateId)
+        )
+      : getGlobalListener(listenerName)(
+          ...selectState((state) => state[stateId], stateId)
+        );
 
   const injectActions = (bean, stateId) => {
     const actionAttributeName = `action-${stateId}`;
@@ -136,7 +137,7 @@ const U = {
       );
       actionElement.addEventListener(type, () => {
         addListenerByParams(actionElement, listenerName, stateId),
-        render(bean, stateId);
+          render(bean, stateId);
       });
     });
   };

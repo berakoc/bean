@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "chmod +x scripts/*.sh",
     "build": "./scripts/build.sh",
-    "test": "jest"
+    "test": "jest --env=jsdom"
   },
   "husky": {
     "hooks": {
@@ -32,6 +32,7 @@
     "@babel/cli": "^7.15.4",
     "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.15.4",
+    "@types/jest": "^27.0.1",
     "husky": "^1.0.0-rc.13",
     "jest": "^27.1.0",
     "uglify-js": "^3.14.1"

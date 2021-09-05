@@ -43,6 +43,8 @@ const U = {
     object: 'object',
     string: 'string',
     function: 'function',
+    boolean: 'boolean',
+    number: 'number'
   },
 };
 

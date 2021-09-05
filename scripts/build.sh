@@ -24,3 +24,4 @@ printf "${LIGHT_YELLOW}Minifying the transpiled code\n"
 uglifyjs dist/index.js -o dist/index.min.js --compress --mangle
 printf "${LIGHT_GREEN}Minification is completed\n"
 printf "${LIGHT_BLUE}Build is ready\n"
+git add -A

@@ -96,14 +96,21 @@ var U = {
 
   var StateHandler = function () {
     var state = {};
+    var _shouldUpdate = true;
     return {
       getState: function getState() {
         return state;
       },
       setState: function setState(key, value) {
-        if (!ChangeDetector.detect(state[key], value)) return;
+        if (!ChangeDetector.detect(state[key], value)) return _shouldUpdate = false;
         state = _objectSpread(_objectSpread({}, state), {}, _defineProperty({}, key, value));
+        _shouldUpdate = true;
+      },
+
+      get shouldUpdate() {
+        return _shouldUpdate;
       }
+
     };
   }();
 
@@ -156,7 +163,7 @@ var U = {
 
   var render = function render(bean, stateId) {
     var value = StateHandler.getState()[stateId];
-    U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
+    StateHandler.shouldUpdate && U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
       return node.innerText = value;
     });
   };
@@ -181,7 +188,8 @@ var U = {
           type = _U$stringToObject2[1];
 
       actionElement.addEventListener(type, function () {
-        addListenerByParams(actionElement, listenerName, stateId), render(bean, stateId);
+        addListenerByParams(actionElement, listenerName, stateId);
+        render(bean, stateId);
       });
     });
   };

@@ -62,14 +62,20 @@ const U = {
 
   const StateHandler = (() => {
     let state = {};
+    let _shouldUpdate = true;
     return {
       getState: () => state,
       setState: (key, value) => {
-        if (!ChangeDetector.detect(state[key], value)) return;
+        if (!ChangeDetector.detect(state[key], value))
+          return (_shouldUpdate = false);
         state = {
           ...state,
           [key]: value,
         };
+        _shouldUpdate = true;
+      },
+      get shouldUpdate() {
+        return _shouldUpdate;
       },
     };
   })();
@@ -115,7 +121,8 @@ const U = {
 
   const render = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
-    U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
+    StateHandler.shouldUpdate &&
+      U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
   const addListenerByParams = (element, listenerName, stateId) =>
@@ -136,8 +143,8 @@ const U = {
         actionElement.getAttribute(actionAttributeName)
       );
       actionElement.addEventListener(type, () => {
-        addListenerByParams(actionElement, listenerName, stateId),
-          render(bean, stateId);
+        addListenerByParams(actionElement, listenerName, stateId);
+        render(bean, stateId);
       });
     });
   };

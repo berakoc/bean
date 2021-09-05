@@ -11,10 +11,13 @@ const U = {
     (...args) =>
       !f(...args),
   type: (v) => typeof v,
-  stringToObject: (value, options = { isArray: false, isString: false }) =>
-    options.isString
-      ? value.replace(/'/g, '')
-      : JSON.parse(options.isArray ? value.replace(/'/g, '"') : value),
+  stringToObject: (value) => {
+    const isArray = Boolean(~value.indexOf('['));
+    const isString = !isArray && Boolean(~value.indexOf("'"));
+    return isString
+    ? value.replace(/'/g, '')
+    : JSON.parse(isArray ? value.replace(/'/g, '"') : value);
+  },
   and: (bool1, bool2) => bool1 && bool2,
   deepCompare: (o1, o2) => {
     const o1Keys = Object.keys(o1);
@@ -92,9 +95,7 @@ const U = {
 
   const initialRender = (bean, stateId) => {
     const rawInitialValue = bean.getAttribute('init');
-    const value = U.stringToObject(rawInitialValue, {
-      isString: Boolean(~rawInitialValue.indexOf("'")),
-    });
+    const value = U.stringToObject(rawInitialValue);
     StateHandler.setState(stateId, value);
     U.$(`[${stateId}]`, bean).forEach((node) => {
       node.hasAttribute(stateId) && node.removeAttribute(stateId);
@@ -119,12 +120,8 @@ const U = {
     const actionAttributeName = `action-${stateId}`;
     const actionElements = U.$(`[${actionAttributeName}]`, bean);
     actionElements.forEach((actionElement) => {
-      const [listenerName, type] = U.stringToObject(
-        actionElement.getAttribute(actionAttributeName),
-        {
-          isArray: true,
-        }
-      );
+      const [listenerName, type] = U.stringToObject(actionElement.getAttribute(actionAttributeName));
+      debugger;
       actionElement.addEventListener(type, () => {
         let _actionElement = actionElement;
         actionElement instanceof HTMLInputElement

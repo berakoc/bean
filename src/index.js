@@ -1,7 +1,9 @@
 const U = {
   $: (query, context = document) => context.querySelectorAll(query),
   curry: (f) =>
-    U.isNot(U.type(f), U.types.function )? f : (...args) => f.bind(null, ...args),
+    U.isNot(U.type(f), U.types.function)
+      ? f
+      : (...args) => f.bind(null, ...args),
   is: Object.is,
   isNot: (v1, v2) => !U.is(v1, v2),
   not:
@@ -9,10 +11,13 @@ const U = {
     (...args) =>
       !f(...args),
   type: (v) => typeof v,
-  stringToObject: (value, options = { isArray: false, isString: false }) =>
-    options.isString
+  stringToObject: (value) => {
+    const isArray = Boolean(~value.indexOf('['));
+    const isString = !isArray && Boolean(~value.indexOf("'"));
+    return isString
       ? value.replace(/'/g, '')
-      : JSON.parse(options.isArray ? value.replace(/'/g, '"') : value),
+      : JSON.parse(isArray ? value.replace(/'/g, '"') : value);
+  },
   and: (bool1, bool2) => bool1 && bool2,
   deepCompare: (o1, o2) => {
     const o1Keys = Object.keys(o1);
@@ -38,6 +43,8 @@ const U = {
     object: 'object',
     string: 'string',
     function: 'function',
+    boolean: 'boolean',
+    number: 'number',
   },
 };
 
@@ -67,8 +74,11 @@ const U = {
     };
   })();
 
-  const selectState = (selector, key) => [() => selector(StateHandler.getState()), (value) => U.curry(StateHandler.setState)(key)(value)];
-  const getStateHandlers = () => U.$('[bean]');
+  const selectState = (selector, key) => [
+    () => selector(StateHandler.getState()),
+    (value) => U.curry(StateHandler.setState)(key)(value),
+  ];
+  const getBeans = () => U.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
 
   const createStateContainers = (stringTokens, stateId, value) => {
@@ -87,9 +97,7 @@ const U = {
 
   const initialRender = (bean, stateId) => {
     const rawInitialValue = bean.getAttribute('init');
-    const value = U.stringToObject(rawInitialValue, {
-      isString: Boolean(~rawInitialValue.indexOf("'")),
-    });
+    const value = U.stringToObject(rawInitialValue);
     StateHandler.setState(stateId, value);
     U.$(`[${stateId}]`, bean).forEach((node) => {
       node.hasAttribute(stateId) && node.removeAttribute(stateId);
@@ -110,25 +118,26 @@ const U = {
     U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
+  const addListenerByParams = (element, listenerName, stateId) =>
+    element instanceof HTMLInputElement
+      ? getGlobalListener(listenerName)(
+          () => element['value'],
+          ...selectState((state) => state[stateId], stateId)
+        )
+      : getGlobalListener(listenerName)(
+          ...selectState((state) => state[stateId], stateId)
+        );
+
   const injectActions = (bean, stateId) => {
     const actionAttributeName = `action-${stateId}`;
     const actionElements = U.$(`[${actionAttributeName}]`, bean);
     actionElements.forEach((actionElement) => {
       const [listenerName, type] = U.stringToObject(
-        actionElement.getAttribute(actionAttributeName),
-        {
-          isArray: true,
-        }
+        actionElement.getAttribute(actionAttributeName)
       );
       actionElement.addEventListener(type, () => {
-        let _actionElement = actionElement;
-        actionElement instanceof HTMLInputElement
-          ? getGlobalListener(listenerName)(
-              () => _actionElement['value'],
-              ...selectState(state => state[stateId], stateId)
-            )
-          : getGlobalListener(listenerName)(...selectState(state => state[stateId], stateId));
-        render(bean, stateId);
+        addListenerByParams(actionElement, listenerName, stateId),
+          render(bean, stateId);
       });
     });
   };
@@ -141,10 +150,6 @@ const U = {
     });
   };
 
-  const init = () => {
-    const beans = getStateHandlers();
-    injectFragments(beans);
-  };
-
+  const init = () => injectFragments(getBeans());
   init();
 })();

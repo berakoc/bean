@@ -1,0 +1,33 @@
+{
+  "name": "bean",
+  "version": "0.0.1",
+  "description": "An imperative, template-based state manager for JavaScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "postinstall": "chmod +x scripts/*.sh",
+    "build": "./scripts/build.sh",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/berakoc/bean.git"
+  },
+  "keywords": [
+    "state-management",
+    "imperative",
+    "template"
+  ],
+  "author": "Bera Koç",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/berakoc/bean/issues"
+  },
+  "homepage": "https://github.com/berakoc/bean#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.15.4",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.4",
+    "jest": "^27.1.0",
+    "uglify-js": "^3.14.1"
+  }
+}

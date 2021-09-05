@@ -76,7 +76,7 @@ const U = {
     () => selector(StateHandler.getState()),
     (value) => U.curry(StateHandler.setState)(key)(value),
   ];
-  const getStateHandlers = () => U.$('[bean]');
+  const getBeans = () => U.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
 
   const createStateContainers = (stringTokens, stateId, value) => {
@@ -116,6 +116,15 @@ const U = {
     U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
   };
 
+  const addListenerByParams = (element, listenerName, stateId) => element instanceof HTMLInputElement
+  ? getGlobalListener(listenerName)(
+      () => element['value'],
+      ...selectState((state) => state[stateId], stateId)
+    )
+  : getGlobalListener(listenerName)(
+      ...selectState((state) => state[stateId], stateId)
+    );
+
   const injectActions = (bean, stateId) => {
     const actionAttributeName = `action-${stateId}`;
     const actionElements = U.$(`[${actionAttributeName}]`, bean);
@@ -123,17 +132,8 @@ const U = {
       const [listenerName, type] = U.stringToObject(
         actionElement.getAttribute(actionAttributeName)
       );
-      debugger;
       actionElement.addEventListener(type, () => {
-        let _actionElement = actionElement;
-        actionElement instanceof HTMLInputElement
-          ? getGlobalListener(listenerName)(
-              () => _actionElement['value'],
-              ...selectState((state) => state[stateId], stateId)
-            )
-          : getGlobalListener(listenerName)(
-              ...selectState((state) => state[stateId], stateId)
-            );
+        addListenerByParams(actionElement, listenerName, stateId),
         render(bean, stateId);
       });
     });
@@ -147,10 +147,6 @@ const U = {
     });
   };
 
-  const init = () => {
-    const beans = getStateHandlers();
-    injectFragments(beans);
-  };
-
+  const init = () => injectFragments(getBeans());
   init();
 })();

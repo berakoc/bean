@@ -10,7 +10,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run build && git add -A"
+      "pre-push": "npm run build && git add src/index.js"
     }
   },
   "repository": {

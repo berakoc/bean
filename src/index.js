@@ -15,8 +15,8 @@ const U = {
     const isArray = Boolean(~value.indexOf('['));
     const isString = !isArray && Boolean(~value.indexOf("'"));
     return isString
-    ? value.replace(/'/g, '')
-    : JSON.parse(isArray ? value.replace(/'/g, '"') : value);
+      ? value.replace(/'/g, '')
+      : JSON.parse(isArray ? value.replace(/'/g, '"') : value);
   },
   and: (bool1, bool2) => bool1 && bool2,
   deepCompare: (o1, o2) => {
@@ -120,7 +120,9 @@ const U = {
     const actionAttributeName = `action-${stateId}`;
     const actionElements = U.$(`[${actionAttributeName}]`, bean);
     actionElements.forEach((actionElement) => {
-      const [listenerName, type] = U.stringToObject(actionElement.getAttribute(actionAttributeName));
+      const [listenerName, type] = U.stringToObject(
+        actionElement.getAttribute(actionAttributeName)
+      );
       debugger;
       actionElement.addEventListener(type, () => {
         let _actionElement = actionElement;

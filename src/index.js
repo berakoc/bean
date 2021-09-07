@@ -49,6 +49,10 @@ const U = {
 };
 
 (() => {
+  const { customAlphabet } = require('nanoid');
+  const alphabet = '1234567890abcdefghijklmnopqrstuvwxyz';
+  const validate = (str) => /^state-[a-z0-9-]{18}$/.test(str);
+
   const ChangeDetector = {
     detect(current, previous) {
       return U.and(
@@ -80,43 +84,63 @@ const U = {
     };
   })();
 
+  let listeners = window.listeners || {};
   const selectState = (selector, key) => [
     () => selector(StateHandler.getState()),
     (value) => U.curry(StateHandler.setState)(key)(value),
   ];
   const getBeans = () => U.$('[bean]');
   const getGlobalListener = (listenerName) => listeners[listenerName];
+  const getUUID = () => `state-${customAlphabet(alphabet, 18)()}`;
 
-  const createStateContainers = (stringTokens, stateId, value) => {
-    const HTMLFragments = [];
-    stringTokens.forEach((stringToken, idx) => {
-      HTMLFragments.push(stringToken);
-      if (idx !== stringTokens.length - 1) {
-        const stateContainer = document.createElement('span');
-        stateContainer.innerText = value;
-        stateContainer.setAttribute(stateId, '');
-        HTMLFragments.push(stateContainer);
-      }
+  const getRenderTree = (beans) => {
+    const memory = {};
+    let renderTree = [];
+    beans.forEach((bean) => {
+      const stateId = bean.getAttribute('state');
+      const initialValue = U.stringToObject(bean.getAttribute('init'));
+      StateHandler.setState(stateId, initialValue);
+      memory[stateId] = initialValue;
+      U.$('[inject]', bean).forEach((node) => {
+        const nodeId = getUUID();
+        node.removeAttribute('inject');
+        node.setAttribute(nodeId, '');
+        renderTree = renderTree.concat(
+          nodeId,
+          node.innerHTML.split(/(\$[a-z-]+)/g)
+        );
+      });
     });
-    return HTMLFragments;
+    return [memory, renderTree];
   };
 
-  const initialRender = (bean, stateId) => {
-    const rawInitialValue = bean.getAttribute('init');
-    const value = U.stringToObject(rawInitialValue);
-    StateHandler.setState(stateId, value);
-    U.$(`[${stateId}]`, bean).forEach((node) => {
-      node.hasAttribute(stateId) && node.removeAttribute(stateId);
-      const stringTokens = node.innerHTML.split(`$state`);
-      const HTMLFragments = createStateContainers(stringTokens, stateId, value);
-      const enhancedHTML = HTMLFragments.map((HTMLFragment) =>
-        U.is(U.type(HTMLFragment), U.types.string)
-          ? document.createTextNode(HTMLFragment)
-          : HTMLFragment
-      );
-      node.innerHTML = null;
-      node.append(...enhancedHTML);
+  const initialRender = (beans) => {
+    const [memory, renderTree] = getRenderTree(beans);
+    let currentNodeId;
+    let currentNode;
+    renderTree.forEach((renderKey) => {
+      if (validate(renderKey)) {
+        currentNodeId = renderKey;
+        currentNode = U.$(`[${currentNodeId}]`)[0];
+        currentNode.innerHTML = null;
+      } else if (/^\$[a-z-]+$/.test(renderKey)) {
+        const stateId = renderKey.slice(1);
+        const value = memory[stateId];
+        const stateFragment = document.createElement('span');
+        stateFragment.setAttribute(stateId, '');
+        stateFragment.innerText = value;
+        currentNode.append(stateFragment);
+      } else {
+        currentNode.append(document.createTextNode(renderKey));
+      }
     });
+    return {
+      then(actionHandler) {
+        beans.forEach((bean) =>
+          actionHandler(bean, bean.getAttribute('state'))
+        );
+      },
+    };
   };
 
   const render = (bean, stateId) => {
@@ -149,14 +173,13 @@ const U = {
     });
   };
 
-  const injectFragments = (beans) => {
-    beans.forEach((bean) => {
-      const stateId = bean.getAttribute('state');
-      initialRender(bean, stateId);
-      injectActions(bean, stateId);
-    });
-  };
-
+  const injectFragments = (beans) => initialRender(beans).then(injectActions);
   const init = () => injectFragments(getBeans());
   init();
+
+  const setGlobals = () => {
+    window.U = U;
+    window.setBeanListeners = (_listeners) => (listeners = _listeners);
+  };
+  setGlobals();
 })();

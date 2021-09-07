@@ -17,8 +17,13 @@ printf "${LIGHT_GREEN}Tests are passed successfully\n"
 printf "${LIGHT_YELLOW}Clearing dist folder...\n"
 rm -rf dist
 printf "${LIGHT_GREEN}Dist folder is removed\n"
+printf "${LIGHT_YELLOW}Bundling source code with NPM packages...\n"
+node_modules/.bin/browserify src/index.js -o src/bundle.js
+printf "${LIGHT_GREEN}Bundle is ready\n"
 printf "${LIGHT_YELLOW}Transpiling the source code...\n"
-npx babel src/index.js -o dist/index.js
+npx babel src/bundle.js -o dist/index.js
+printf "${LIGHT_YELLOW}Removing bundle...\n"
+rm src/bundle.js
 printf "${LIGHT_GREEN}Source code is transpiled\n"
 printf "${LIGHT_YELLOW}Minifying the transpiled code\n"
 uglifyjs dist/index.js -o dist/index.min.js --compress --mangle

@@ -1,20 +1,8 @@
 "use strict";
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
@@ -25,6 +13,18 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -440,6 +440,38 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         return result;
       },
+      makeThenable: function makeThenable(f) {
+        return function () {
+          for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+          }
+
+          return {
+            then: function then(g) {
+              return g(f.apply(void 0, args));
+            }
+          };
+        };
+      },
+      pipe: function pipe() {
+        for (var _len3 = arguments.length, fs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          fs[_key3] = arguments[_key3];
+        }
+
+        return function () {
+          for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          return fs.reduce(function (F, f) {
+            return function () {
+              return [f.apply(void 0, _toConsumableArray([].concat(F())))];
+            };
+          }, function () {
+            return args;
+          })()[0];
+        };
+      },
       types: {
         object: 'object',
         string: 'string',
@@ -485,6 +517,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         };
       }();
 
+      var getStateId = function getStateId(bean) {
+        return bean.getAttribute('state');
+      };
+
       var listeners = window.listeners || {};
 
       var selectState = function selectState(selector, key) {
@@ -511,7 +547,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var memory = {};
         var renderTree = [];
         beans.forEach(function (bean) {
-          var stateId = bean.getAttribute('state');
+          var stateId = getStateId(bean);
           var initialValue = U.stringToObject(bean.getAttribute('init'));
           StateHandler.setState(stateId, initialValue);
           memory[stateId] = initialValue;
@@ -525,7 +561,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return [memory, renderTree];
       };
 
-      var initialRender = function initialRender(beans) {
+      var renderInitialView = function renderInitialView() {
+        var beans = getBeans();
+
         var _getRenderTree = getRenderTree(beans),
             _getRenderTree2 = _slicedToArray(_getRenderTree, 2),
             memory = _getRenderTree2[0],
@@ -549,16 +587,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             currentNode.append(document.createTextNode(renderKey));
           }
         });
-        return {
-          then: function then(actionHandler) {
-            beans.forEach(function (bean) {
-              return actionHandler(bean, bean.getAttribute('state'));
-            });
-          }
-        };
+        return beans;
       };
 
-      var render = function render(bean, stateId) {
+      var updateViewByState = function updateViewByState(bean, stateId) {
         var value = StateHandler.getState()[stateId];
         StateHandler.shouldUpdate && U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
           return node.innerText = value;
@@ -575,28 +607,34 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         }, stateId)));
       };
 
-      var injectActions = function injectActions(bean, stateId) {
-        var actionAttributeName = "action-".concat(stateId);
-        var actionElements = U.$("[".concat(actionAttributeName, "]"), bean);
-        actionElements.forEach(function (actionElement) {
-          var _U$stringToObject = U.stringToObject(actionElement.getAttribute(actionAttributeName)),
-              _U$stringToObject2 = _slicedToArray(_U$stringToObject, 2),
-              listenerName = _U$stringToObject2[0],
-              type = _U$stringToObject2[1];
+      var applyStateBinds = function applyStateBinds(beans) {
+        return beans;
+      };
 
-          actionElement.addEventListener(type, function () {
-            addListenerByParams(actionElement, listenerName, stateId);
-            render(bean, stateId);
+      var handleActions = function handleActions(beans) {
+        beans.forEach(function (bean) {
+          var stateId = getStateId(bean);
+          var actionAttributeName = "action-".concat(stateId);
+          var actionElements = U.$("[".concat(actionAttributeName, "]"), bean);
+          actionElements.forEach(function (actionElement) {
+            var _U$stringToObject = U.stringToObject(actionElement.getAttribute(actionAttributeName)),
+                _U$stringToObject2 = _slicedToArray(_U$stringToObject, 2),
+                listenerName = _U$stringToObject2[0],
+                type = _U$stringToObject2[1];
+
+            actionElement.addEventListener(type, function () {
+              addListenerByParams(actionElement, listenerName, stateId);
+              updateViewByState(bean, stateId);
+            });
           });
         });
+        return beans;
       };
 
-      var injectFragments = function injectFragments(beans) {
-        return initialRender(beans).then(injectActions);
-      };
+      var runRenderProcess = U.pipe(renderInitialView, handleActions);
 
       var init = function init() {
-        return injectFragments(getBeans());
+        return runRenderProcess();
       };
 
       init();

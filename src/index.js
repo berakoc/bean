@@ -39,6 +39,18 @@ const U = {
     }
     return result;
   },
+  makeThenable:
+    (f) =>
+    (...args) => ({
+      then: (g) => g(f(...args)),
+    }),
+  pipe:
+    (...fs) =>
+    (...args) =>
+      fs.reduce(
+        (F, f) => () => [f(...[].concat(F()))],
+        () => args
+      )()[0],
   types: {
     object: 'object',
     string: 'string',
@@ -83,6 +95,7 @@ const bootstrap = () => {
       },
     };
   })();
+  const getStateId = (bean) => bean.getAttribute('state');
 
   let listeners = window.listeners || {};
   const selectState = (selector, key) => [
@@ -97,7 +110,7 @@ const bootstrap = () => {
     const memory = {};
     let renderTree = [];
     beans.forEach((bean) => {
-      const stateId = bean.getAttribute('state');
+      const stateId = getStateId(bean);
       const initialValue = U.stringToObject(bean.getAttribute('init'));
       StateHandler.setState(stateId, initialValue);
       memory[stateId] = initialValue;
@@ -114,7 +127,8 @@ const bootstrap = () => {
     return [memory, renderTree];
   };
 
-  const initialRender = (beans) => {
+  const renderInitialView = () => {
+    const beans = getBeans();
     const [memory, renderTree] = getRenderTree(beans);
     let currentNodeId;
     let currentNode;
@@ -134,16 +148,10 @@ const bootstrap = () => {
         currentNode.append(document.createTextNode(renderKey));
       }
     });
-    return {
-      then(actionHandler) {
-        beans.forEach((bean) =>
-          actionHandler(bean, bean.getAttribute('state'))
-        );
-      },
-    };
+    return beans;
   };
 
-  const render = (bean, stateId) => {
+  const updateViewByState = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
     StateHandler.shouldUpdate &&
       U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
@@ -159,22 +167,30 @@ const bootstrap = () => {
           ...selectState((state) => state[stateId], stateId)
         );
 
-  const injectActions = (bean, stateId) => {
-    const actionAttributeName = `action-${stateId}`;
-    const actionElements = U.$(`[${actionAttributeName}]`, bean);
-    actionElements.forEach((actionElement) => {
-      const [listenerName, type] = U.stringToObject(
-        actionElement.getAttribute(actionAttributeName)
-      );
-      actionElement.addEventListener(type, () => {
-        addListenerByParams(actionElement, listenerName, stateId);
-        render(bean, stateId);
-      });
-    });
+  const applyStateBinds = (beans) => {
+    return beans;
   };
 
-  const injectFragments = (beans) => initialRender(beans).then(injectActions);
-  const init = () => injectFragments(getBeans());
+  const handleActions = (beans) => {
+    beans.forEach((bean) => {
+      const stateId = getStateId(bean);
+      const actionAttributeName = `action-${stateId}`;
+      const actionElements = U.$(`[${actionAttributeName}]`, bean);
+      actionElements.forEach((actionElement) => {
+        const [listenerName, type] = U.stringToObject(
+          actionElement.getAttribute(actionAttributeName)
+        );
+        actionElement.addEventListener(type, () => {
+          addListenerByParams(actionElement, listenerName, stateId);
+          updateViewByState(bean, stateId);
+        });
+      });
+    });
+    return beans;
+  };
+
+  const runRenderProcess = U.pipe(renderInitialView, handleActions);
+  const init = () => runRenderProcess();
   init();
 
   const setGlobals = () => {

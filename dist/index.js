@@ -449,7 +449,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       }
     };
 
-    (function () {
+    var bootstrap = function bootstrap() {
       var _require2 = require('nanoid'),
           customAlphabet = _require2.customAlphabet;
 
@@ -610,7 +610,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       };
 
       setGlobals();
-    })();
+    };
+
+    window.bootstrap = bootstrap;
   }, {
     "nanoid": 1
   }]

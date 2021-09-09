@@ -48,7 +48,7 @@ const U = {
   },
 };
 
-(() => {
+const bootstrap = () => {
   const { customAlphabet } = require('nanoid');
   const alphabet = '1234567890abcdefghijklmnopqrstuvwxyz';
   const validate = (str) => /^state-[a-z0-9-]{18}$/.test(str);
@@ -182,4 +182,6 @@ const U = {
     window.setBeanListeners = (_listeners) => (listeners = _listeners);
   };
   setGlobals();
-})();
+};
+
+window.bootstrap = bootstrap;

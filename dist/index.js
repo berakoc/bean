@@ -390,6 +390,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     };
   }, {}],
   4: [function (require, module, exports) {
+    var _this = this;
+
     var U = {
       $: function $(query) {
         var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
@@ -472,6 +474,30 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           })()[0];
         };
       },
+      once: function once(f) {
+        var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _this;
+        var isRun = false,
+            result;
+        return function () {
+          if (!isRun) {
+            for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+              args[_key5] = arguments[_key5];
+            }
+
+            result = f.apply(context, args);
+            isRun = true;
+          }
+
+          return result;
+        };
+      },
+      onCond: function onCond(cond, f) {
+        return cond && function () {
+          return f.apply(void 0, arguments);
+        } || function () {
+          return null;
+        };
+      },
       types: {
         object: 'object',
         string: 'string',
@@ -535,9 +561,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return U.$('[bean]');
       };
 
-      var getGlobalListener = function getGlobalListener(listenerName) {
+      var getGlobalListener = function getGlobalListener(listeners, listenerName) {
         return listeners[listenerName];
       };
+
+      var getStaticGlobalListeners = U.curry(getGlobalListener)(listeners);
 
       var getUUID = function getUUID() {
         return "state-".concat(customAlphabet(alphabet, 18)());
@@ -561,7 +589,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return [memory, renderTree];
       };
 
-      var renderInitialView = function renderInitialView() {
+      var renderInitialView = U.once(function () {
         var beans = getBeans();
 
         var _getRenderTree = getRenderTree(beans),
@@ -588,45 +616,54 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
           }
         });
         return beans;
-      };
+      });
 
       var updateViewByState = function updateViewByState(bean, stateId) {
         var value = StateHandler.getState()[stateId];
-        StateHandler.shouldUpdate && U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
-          return node.innerText = value;
-        }) && U.$("[bind-".concat(stateId, "]")).forEach(function (input) {
-          return input.value = value;
-        });
+        var shouldUpdate = StateHandler.shouldUpdate;
+        U.onCond(shouldUpdate, function () {
+          return U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
+            return node.innerText = value;
+          });
+        })();
+        U.onCond(shouldUpdate, function () {
+          return U.$("[bind-".concat(stateId, "]"), bean).forEach(function (input) {
+            return input.value = value;
+          });
+        })();
       };
 
-      var addListenerByParams = function addListenerByParams(element, listenerName, stateId) {
-        return element instanceof HTMLInputElement ? getGlobalListener(listenerName).apply(void 0, [function () {
+      var invokeListenerByParams = function invokeListenerByParams(element, listenerName, stateId) {
+        return element instanceof HTMLInputElement ? getGlobalListener(listeners, listenerName).apply(void 0, [function () {
           return element['value'];
         }].concat(_toConsumableArray(selectState(function (state) {
           return state[stateId];
-        }, stateId)))) : getGlobalListener(listenerName).apply(void 0, _toConsumableArray(selectState(function (state) {
+        }, stateId)))) : getGlobalListener(listeners, listenerName).apply(void 0, _toConsumableArray(selectState(function (state) {
           return state[stateId];
         }, stateId)));
       };
 
-      var applyStateBinds = function applyStateBinds(beans) {
+      var applyInputBinds = U.once(function (beans) {
         beans.forEach(function (bean) {
           var stateId = getStateId(bean);
           U.$("[bind-".concat(stateId, "]")).forEach(function (input) {
-            var defaultListener = function defaultListener(_, setInput) {
-              return setInput(input.value);
+            var defaultBindListener = function defaultBindListener(value, _, setInput) {
+              setInput(value());
+              input.value = value();
             };
 
-            input.addEventListener('change', function () {
-              addListenerByParams(input, defaultListener, stateId);
+            var syntheticListenerName = Symbol("@@bind-".concat(stateId));
+            listeners[syntheticListenerName] = defaultBindListener;
+            input.addEventListener('input', function () {
+              console.log(input.value);
+              invokeListenerByParams(input, syntheticListenerName, stateId);
               updateViewByState(bean, stateId);
             });
           });
         });
         return beans;
-      };
-
-      var handleActions = function handleActions(beans) {
+      });
+      var handleActions = U.once(function (beans) {
         beans.forEach(function (bean) {
           var stateId = getStateId(bean);
           var actionAttributeName = "action-".concat(stateId);
@@ -638,15 +675,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
                 type = _U$stringToObject2[1];
 
             actionElement.addEventListener(type, function () {
-              addListenerByParams(actionElement, listenerName, stateId);
+              invokeListenerByParams(actionElement, listenerName, stateId);
               updateViewByState(bean, stateId);
             });
           });
         });
         return beans;
-      };
-
-      var runRenderProcess = U.pipe(renderInitialView, handleActions, applyStateBinds);
+      });
+      var runRenderProcess = U.pipe(renderInitialView, handleActions, applyInputBinds);
 
       var init = function init() {
         return runRenderProcess();
@@ -658,7 +694,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         window.U = U;
 
         window.setBeanListeners = function (_listeners) {
-          return listeners = _listeners;
+          return Object.keys(_listeners).forEach(function (key) {
+            return listeners[key] = _listeners[key];
+          });
         };
       };
 

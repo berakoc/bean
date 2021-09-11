@@ -51,17 +51,18 @@ const U = {
         (F, f) => () => [f(...[].concat(F()))],
         () => args
       )()[0],
-  once: (f, context=this) => {
-    let isRun = false, result;
+  once: (f, context = this) => {
+    let isRun = false,
+      result;
     return (...args) => {
       if (!isRun) {
         result = f.apply(context, args);
         isRun = true;
       }
       return result;
-    }
+    };
   },
-  onCond: (f, cond) => cond && ((...args) => f(...args)) || null,
+  onCond: (cond, f) => (cond && ((...args) => f(...args))) || (() => null),
   types: {
     object: 'object',
     string: 'string',
@@ -114,7 +115,9 @@ const bootstrap = () => {
     (value) => U.curry(StateHandler.setState)(key)(value),
   ];
   const getBeans = () => U.$('[bean]');
-  const getGlobalListener = (listenerName) => listeners[listenerName];
+  const getGlobalListener = (listeners, listenerName) =>
+    listeners[listenerName];
+  const getStaticGlobalListeners = U.curry(getGlobalListener)(listeners);
   const getUUID = () => `state-${customAlphabet(alphabet, 18)()}`;
 
   const getRenderTree = (beans) => {
@@ -164,28 +167,40 @@ const bootstrap = () => {
 
   const updateViewByState = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
-    StateHandler.shouldUpdate &&
-      U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value));
+    const shouldUpdate = StateHandler.shouldUpdate;
+    U.onCond(shouldUpdate, () =>
+      U.$(`[${stateId}]`, bean).forEach((node) => (node.innerText = value))
+    )();
+    U.onCond(shouldUpdate, () =>
+      U.$(`[bind-${stateId}]`, bean).forEach((input) => (input.value = value))
+    )();
   };
 
-  const addListenerByParams = (element, listenerName, stateId) =>
-    element instanceof HTMLInputElement
-      ? getGlobalListener(listenerName)(
+  const invokeListenerByParams = (element, listenerName, stateId) => {
+    return element instanceof HTMLInputElement
+      ? getGlobalListener(listeners, listenerName)(
           () => element['value'],
           ...selectState((state) => state[stateId], stateId)
         )
-      : getGlobalListener(listenerName)(
-          ...selectState((state) => state[stateId], stateId)
-        );
+      : getGlobalListener(
+          listeners,
+          listenerName
+        )(...selectState((state) => state[stateId], stateId));
+  };
 
-  const applyStateBinds = U.once((beans) => {
+  const applyInputBinds = U.once((beans) => {
     beans.forEach((bean) => {
       const stateId = getStateId(bean);
       U.$(`[bind-${stateId}]`).forEach((input) => {
-        const defaultListener = (_, setInput) => setInput(input.value);
-        input.addEventListener('change', () => {
-          debugger;
-          addListenerByParams(input, defaultListener, stateId);
+        const defaultBindListener = (value, _, setInput) => {
+          setInput(value());
+          input.value = value();
+        };
+        const syntheticListenerName = Symbol(`@@bind-${stateId}`);
+        listeners[syntheticListenerName] = defaultBindListener;
+        input.addEventListener('input', () => {
+          console.log(input.value);
+          invokeListenerByParams(input, syntheticListenerName, stateId);
           updateViewByState(bean, stateId);
         });
       });
@@ -203,7 +218,7 @@ const bootstrap = () => {
           actionElement.getAttribute(actionAttributeName)
         );
         actionElement.addEventListener(type, () => {
-          addListenerByParams(actionElement, listenerName, stateId);
+          invokeListenerByParams(actionElement, listenerName, stateId);
           updateViewByState(bean, stateId);
         });
       });
@@ -214,14 +229,17 @@ const bootstrap = () => {
   const runRenderProcess = U.pipe(
     renderInitialView,
     handleActions,
-    applyStateBinds
+    applyInputBinds
   );
   const init = () => runRenderProcess();
   init();
 
   const setGlobals = () => {
     window.U = U;
-    window.setBeanListeners = (_listeners) => (listeners = _listeners);
+    window.setBeanListeners = (_listeners) =>
+      Object.keys(_listeners).forEach(
+        (key) => (listeners[key] = _listeners[key])
+      );
   };
   setGlobals();
 };

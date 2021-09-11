@@ -1,20 +1,8 @@
 "use strict";
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
@@ -25,6 +13,18 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -390,6 +390,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     };
   }, {}],
   4: [function (require, module, exports) {
+    var _this = this;
+
     var U = {
       $: function $(query) {
         var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : document;
@@ -440,6 +442,62 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 
         return result;
       },
+      makeThenable: function makeThenable(f) {
+        return function () {
+          for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+          }
+
+          return {
+            then: function then(g) {
+              return g(f.apply(void 0, args));
+            }
+          };
+        };
+      },
+      pipe: function pipe() {
+        for (var _len3 = arguments.length, fs = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          fs[_key3] = arguments[_key3];
+        }
+
+        return function () {
+          for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          return fs.reduce(function (F, f) {
+            return function () {
+              return [f.apply(void 0, _toConsumableArray([].concat(F())))];
+            };
+          }, function () {
+            return args;
+          })()[0];
+        };
+      },
+      once: function once(f) {
+        var context = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _this;
+        var isRun = false,
+            result;
+        return function () {
+          if (!isRun) {
+            for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+              args[_key5] = arguments[_key5];
+            }
+
+            result = f.apply(context, args);
+            isRun = true;
+          }
+
+          return result;
+        };
+      },
+      onCond: function onCond(cond, f) {
+        return cond && function () {
+          return f.apply(void 0, arguments);
+        } || function () {
+          return null;
+        };
+      },
       types: {
         object: 'object',
         string: 'string',
@@ -449,7 +507,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       }
     };
 
-    (function () {
+    var bootstrap = function bootstrap() {
       var _require2 = require('nanoid'),
           customAlphabet = _require2.customAlphabet;
 
@@ -485,6 +543,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         };
       }();
 
+      var getStateId = function getStateId(bean) {
+        return bean.getAttribute('state');
+      };
+
       var listeners = window.listeners || {};
 
       var selectState = function selectState(selector, key) {
@@ -499,9 +561,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return U.$('[bean]');
       };
 
-      var getGlobalListener = function getGlobalListener(listenerName) {
+      var getGlobalListener = function getGlobalListener(listeners, listenerName) {
         return listeners[listenerName];
       };
+
+      var getStaticGlobalListeners = U.curry(getGlobalListener)(listeners);
 
       var getUUID = function getUUID() {
         return "state-".concat(customAlphabet(alphabet, 18)());
@@ -511,7 +575,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var memory = {};
         var renderTree = [];
         beans.forEach(function (bean) {
-          var stateId = bean.getAttribute('state');
+          var stateId = getStateId(bean);
           var initialValue = U.stringToObject(bean.getAttribute('init'));
           StateHandler.setState(stateId, initialValue);
           memory[stateId] = initialValue;
@@ -525,7 +589,9 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return [memory, renderTree];
       };
 
-      var initialRender = function initialRender(beans) {
+      var renderInitialView = U.once(function () {
+        var beans = getBeans();
+
         var _getRenderTree = getRenderTree(beans),
             _getRenderTree2 = _slicedToArray(_getRenderTree, 2),
             memory = _getRenderTree2[0],
@@ -549,54 +615,77 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
             currentNode.append(document.createTextNode(renderKey));
           }
         });
-        return {
-          then: function then(actionHandler) {
-            beans.forEach(function (bean) {
-              return actionHandler(bean, bean.getAttribute('state'));
-            });
-          }
-        };
-      };
+        return beans;
+      });
 
-      var render = function render(bean, stateId) {
+      var updateViewByState = function updateViewByState(bean, stateId) {
         var value = StateHandler.getState()[stateId];
-        StateHandler.shouldUpdate && U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
-          return node.innerText = value;
-        });
+        var shouldUpdate = StateHandler.shouldUpdate;
+        U.onCond(shouldUpdate, function () {
+          return U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
+            return node.innerText = value;
+          });
+        })();
+        U.onCond(shouldUpdate, function () {
+          return U.$("[bind-".concat(stateId, "]"), bean).forEach(function (input) {
+            return input.value = value;
+          });
+        })();
       };
 
-      var addListenerByParams = function addListenerByParams(element, listenerName, stateId) {
-        return element instanceof HTMLInputElement ? getGlobalListener(listenerName).apply(void 0, [function () {
+      var invokeListenerByParams = function invokeListenerByParams(element, listenerName, stateId) {
+        return element instanceof HTMLInputElement ? getGlobalListener(listeners, listenerName).apply(void 0, [function () {
           return element['value'];
         }].concat(_toConsumableArray(selectState(function (state) {
           return state[stateId];
-        }, stateId)))) : getGlobalListener(listenerName).apply(void 0, _toConsumableArray(selectState(function (state) {
+        }, stateId)))) : getGlobalListener(listeners, listenerName).apply(void 0, _toConsumableArray(selectState(function (state) {
           return state[stateId];
         }, stateId)));
       };
 
-      var injectActions = function injectActions(bean, stateId) {
-        var actionAttributeName = "action-".concat(stateId);
-        var actionElements = U.$("[".concat(actionAttributeName, "]"), bean);
-        actionElements.forEach(function (actionElement) {
-          var _U$stringToObject = U.stringToObject(actionElement.getAttribute(actionAttributeName)),
-              _U$stringToObject2 = _slicedToArray(_U$stringToObject, 2),
-              listenerName = _U$stringToObject2[0],
-              type = _U$stringToObject2[1];
+      var applyInputBinds = U.once(function (beans) {
+        beans.forEach(function (bean) {
+          var stateId = getStateId(bean);
+          U.$("[bind-".concat(stateId, "]")).forEach(function (input) {
+            var defaultBindListener = function defaultBindListener(value, _, setInput) {
+              setInput(value());
+              input.value = value();
+            };
 
-          actionElement.addEventListener(type, function () {
-            addListenerByParams(actionElement, listenerName, stateId);
-            render(bean, stateId);
+            var syntheticListenerName = Symbol("@@bind-".concat(stateId));
+            listeners[syntheticListenerName] = defaultBindListener;
+            input.addEventListener('input', function () {
+              console.log(input.value);
+              invokeListenerByParams(input, syntheticListenerName, stateId);
+              updateViewByState(bean, stateId);
+            });
           });
         });
-      };
+        return beans;
+      });
+      var handleActions = U.once(function (beans) {
+        beans.forEach(function (bean) {
+          var stateId = getStateId(bean);
+          var actionAttributeName = "action-".concat(stateId);
+          var actionElements = U.$("[".concat(actionAttributeName, "]"), bean);
+          actionElements.forEach(function (actionElement) {
+            var _U$stringToObject = U.stringToObject(actionElement.getAttribute(actionAttributeName)),
+                _U$stringToObject2 = _slicedToArray(_U$stringToObject, 2),
+                listenerName = _U$stringToObject2[0],
+                type = _U$stringToObject2[1];
 
-      var injectFragments = function injectFragments(beans) {
-        return initialRender(beans).then(injectActions);
-      };
+            actionElement.addEventListener(type, function () {
+              invokeListenerByParams(actionElement, listenerName, stateId);
+              updateViewByState(bean, stateId);
+            });
+          });
+        });
+        return beans;
+      });
+      var runRenderProcess = U.pipe(renderInitialView, handleActions, applyInputBinds);
 
       var init = function init() {
-        return injectFragments(getBeans());
+        return runRenderProcess();
       };
 
       init();
@@ -605,12 +694,16 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         window.U = U;
 
         window.setBeanListeners = function (_listeners) {
-          return listeners = _listeners;
+          return Object.keys(_listeners).forEach(function (key) {
+            return listeners[key] = _listeners[key];
+          });
         };
       };
 
       setGlobals();
-    })();
+    };
+
+    window.bootstrap = bootstrap;
   }, {
     "nanoid": 1
   }]

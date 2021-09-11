@@ -51,6 +51,17 @@ const U = {
         (F, f) => () => [f(...[].concat(F()))],
         () => args
       )()[0],
+  once: (f, context=this) => {
+    let isRun = false, result;
+    return (...args) => {
+      if (!isRun) {
+        result = f.apply(context, args);
+        isRun = true;
+      }
+      return result;
+    }
+  },
+  onCond: (f, cond) => cond && ((...args) => f(...args)) || null,
   types: {
     object: 'object',
     string: 'string',
@@ -168,6 +179,17 @@ const bootstrap = () => {
         );
 
   const applyStateBinds = (beans) => {
+    beans.forEach((bean) => {
+      const stateId = getStateId(bean);
+      U.$(`[bind-${stateId}]`).forEach((input) => {
+        const defaultListener = (_, setInput) => setInput(input.value);
+        input.addEventListener('change', () => {
+          debugger;
+          addListenerByParams(input, defaultListener, stateId);
+          updateViewByState(bean, stateId);
+        });
+      });
+    });
     return beans;
   };
 
@@ -189,7 +211,11 @@ const bootstrap = () => {
     return beans;
   };
 
-  const runRenderProcess = U.pipe(renderInitialView, handleActions);
+  const runRenderProcess = U.pipe(
+    renderInitialView,
+    handleActions,
+    applyStateBinds
+  );
   const init = () => runRenderProcess();
   init();
 

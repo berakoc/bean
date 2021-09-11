@@ -594,6 +594,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         var value = StateHandler.getState()[stateId];
         StateHandler.shouldUpdate && U.$("[".concat(stateId, "]"), bean).forEach(function (node) {
           return node.innerText = value;
+        }) && U.$("[bind-".concat(stateId, "]")).forEach(function (input) {
+          return input.value = value;
         });
       };
 
@@ -608,6 +610,19 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       };
 
       var applyStateBinds = function applyStateBinds(beans) {
+        beans.forEach(function (bean) {
+          var stateId = getStateId(bean);
+          U.$("[bind-".concat(stateId, "]")).forEach(function (input) {
+            var defaultListener = function defaultListener(_, setInput) {
+              return setInput(input.value);
+            };
+
+            input.addEventListener('change', function () {
+              addListenerByParams(input, defaultListener, stateId);
+              updateViewByState(bean, stateId);
+            });
+          });
+        });
         return beans;
       };
 
@@ -631,7 +646,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return beans;
       };
 
-      var runRenderProcess = U.pipe(renderInitialView, handleActions);
+      var runRenderProcess = U.pipe(renderInitialView, handleActions, applyStateBinds);
 
       var init = function init() {
         return runRenderProcess();

@@ -138,7 +138,7 @@ const bootstrap = () => {
     return [memory, renderTree];
   };
 
-  const renderInitialView = () => {
+  const renderInitialView = U.once(() => {
     const beans = getBeans();
     const [memory, renderTree] = getRenderTree(beans);
     let currentNodeId;
@@ -160,7 +160,7 @@ const bootstrap = () => {
       }
     });
     return beans;
-  };
+  });
 
   const updateViewByState = (bean, stateId) => {
     const value = StateHandler.getState()[stateId];
@@ -178,7 +178,7 @@ const bootstrap = () => {
           ...selectState((state) => state[stateId], stateId)
         );
 
-  const applyStateBinds = (beans) => {
+  const applyStateBinds = U.once((beans) => {
     beans.forEach((bean) => {
       const stateId = getStateId(bean);
       U.$(`[bind-${stateId}]`).forEach((input) => {
@@ -191,9 +191,9 @@ const bootstrap = () => {
       });
     });
     return beans;
-  };
+  });
 
-  const handleActions = (beans) => {
+  const handleActions = U.once((beans) => {
     beans.forEach((bean) => {
       const stateId = getStateId(bean);
       const actionAttributeName = `action-${stateId}`;
@@ -209,7 +209,7 @@ const bootstrap = () => {
       });
     });
     return beans;
-  };
+  });
 
   const runRenderProcess = U.pipe(
     renderInitialView,

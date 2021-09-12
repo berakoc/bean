@@ -242,5 +242,5 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         return g.getListeners()[n] = t[n];
       });
     };
-  }, console.log("%cBean is ready!", "background-color: #ffb703; color: white; border-radius: 2px; padding: 4px 8px;");
+  }, console.log("%cBean is ready!", "background-color: #7209b7; color: white; border-radius: 2px; padding: 4px 8px;");
 })();

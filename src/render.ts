@@ -46,7 +46,7 @@ const updateViewByState = (bean: HTMLElement, stateId: string) => {
   const shouldUpdate = StateHandler.shouldUpdate;
   onCond(shouldUpdate, () =>
     $(`[${stateId}]`, bean).forEach(
-      (node) => ((node as HTMLElement).innerText = value)
+      (node) => ((node as HTMLElement).innerText = JSON.stringify(value))
     )
   )();
   onCond(shouldUpdate, () =>
@@ -56,20 +56,15 @@ const updateViewByState = (bean: HTMLElement, stateId: string) => {
   )();
 };
 
-const invokeListenerByParams = (
-  element: HTMLElement,
+const invokeListenerByParams = <P>(
   listenerName: string | symbol,
-  stateId: string
+  stateId: string,
+  payload?: P
 ) =>
-  element instanceof HTMLInputElement
-    ? getGlobalListener(ListenerRegistery.getListeners(), listenerName)(
-        () => element['value'],
-        ...selectState((state) => state[stateId], stateId)
-      )
-    : getGlobalListener(
-        ListenerRegistery.getListeners(),
-        listenerName
-      )(...selectState((state) => state[stateId], stateId));
+  getGlobalListener(ListenerRegistery.getListeners(), listenerName)(
+    ...selectState((state) => state[stateId], stateId),
+    payload
+  );
 
 class RenderEngine {
   @Once()
@@ -87,7 +82,7 @@ class RenderEngine {
         const value = memory[stateId];
         const stateFragment = document.createElement('span');
         stateFragment.setAttribute(stateId, '');
-        stateFragment.innerText = value;
+        stateFragment.innerText = JSON.stringify(value);
         currentNode.append(stateFragment);
       } else {
         currentNode.append(document.createTextNode(renderKey));
@@ -103,14 +98,14 @@ class RenderEngine {
       const actionAttributeName = `action-${stateId}`;
       const actionElements = $(`[${actionAttributeName}]`, htmlBean);
       actionElements.forEach((actionElement) => {
-        const [listenerName, type] = stringToObject(
+        const [listenerName, type, payloadName] = stringToObject(
           actionElement.getAttribute(actionAttributeName)!
         );
         actionElement.addEventListener(type, () => {
           invokeListenerByParams(
-            actionElement as HTMLElement,
             listenerName,
-            stateId
+            stateId,
+            StateHandler.getState()[payloadName]
           );
           updateViewByState(htmlBean, stateId);
         });
@@ -125,21 +120,21 @@ class RenderEngine {
       const stateId = getStateId(htmlBean);
       $(`[bind-${stateId}]`).forEach((input) => {
         const defaultBindListener = <V>(
-          value: () => V,
           _: StateObtainer,
-          setInput: MemoizedStateMutator<V>
+          setInput: MemoizedStateMutator<V>,
+          value: V
         ) => {
-          setInput(value());
-          (input as HTMLInputElement).value = String(value());
+          setInput(value);
+          (input as HTMLInputElement).value = String(value);
         };
         const syntheticListenerName = Symbol(`@@bind-${stateId}`);
         ListenerRegistery.getListeners()[syntheticListenerName] =
           defaultBindListener;
         input.addEventListener('input', () => {
           invokeListenerByParams(
-            input as HTMLInputElement,
             syntheticListenerName,
-            stateId
+            stateId,
+            (input as HTMLInputElement).value
           );
           updateViewByState(bean as HTMLElement, stateId);
         });

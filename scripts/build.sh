@@ -6,20 +6,17 @@ NC="\033[0m"
 
 printf "${LIGHT_PURPLE}Build is about to start\n"
 printf "${LIGHT_YELLOW}Formatting the code...\n"
-npx prettier --check --write src/index.js
+npx prettier --check --write "src/*.ts"
 printf "${LIGHT_GREEN}Source code is formatted\n"
-printf "${LIGHT_YELLOW}Adding formatted codes to git...\n"
-git add -A
-printf "${LIGHT_GREEN}Formatted codes are added to git\n"
-printf "${LIGHT_YELLOW}Running tests...\n"
-npm test
-printf "${LIGHT_GREEN}Tests are passed successfully\n"
+# printf "${LIGHT_YELLOW}Running tests...\n"
+# npm test
+# printf "${LIGHT_GREEN}Tests are passed successfully\n"
 printf "${LIGHT_YELLOW}Clearing dist folder...\n"
 rm -rf dist
 printf "${LIGHT_GREEN}Dist folder is removed\n"
-printf "${LIGHT_YELLOW}Bundling source code with NPM packages...\n"
-node_modules/.bin/browserify src/index.js -o src/bundle.js
-printf "${LIGHT_GREEN}Bundle is ready\n"
+printf "${LIGHT_YELLOW}Bundling with Webpack...\n"
+npm run build:webpack
+printf "${LIGHT_GREEN}Code is bundled\n"
 printf "${LIGHT_YELLOW}Transpiling the source code...\n"
 npx babel src/bundle.js -o dist/index.js
 printf "${LIGHT_YELLOW}Removing bundle...\n"

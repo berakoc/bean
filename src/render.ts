@@ -2,12 +2,16 @@ import {
   $,
   getUUID,
   Indexable,
-  stringToObject,
-  Once,
-  validate,
-  onCond,
+  isNot,
   logger,
+  Once,
+  onCond,
+  stringToObject,
+  type,
+  types,
+  validate,
 } from './common';
+import { BeanError, ErrorCode } from './error';
 import { getGlobalListener, Listener, ListenerRegistery } from './listener';
 import {
   getStateId,
@@ -30,7 +34,7 @@ const getRenderTree = (beans: Beans): [Indexable, string[]] => {
     StateHandler.setState(stateId, initialValue);
     memory[stateId] = initialValue;
     $('[inject]', htmlBean).forEach((node) => {
-      const nodeId = getUUID();
+      const nodeId = getUUID(stateId);
       node.removeAttribute('inject');
       node.setAttribute(nodeId, '');
       renderTree = renderTree.concat(
@@ -47,13 +51,25 @@ const updateViewByState = (bean: HTMLElement, stateId: string) => {
   const shouldUpdate = StateHandler.shouldUpdate;
   onCond(shouldUpdate, () =>
     $(`[${stateId}]`, bean).forEach(
-      (node) => ((node as HTMLElement).innerText = JSON.stringify(value))
+      (node) => ((node as HTMLElement).innerText = value)
     )
   )();
   onCond(shouldUpdate, () =>
     $(`[bind-${stateId}]`, bean).forEach(
       (input) => ((input as HTMLInputElement).value = value)
     )
+  )();
+  onCond(shouldUpdate, () =>
+    $(`.${stateId}-template`).forEach((template) => {
+      const childClass = template.getAttribute('child-class')!;
+      template.innerHTML = '';
+      value.forEach((val: any) => {
+        const templateNode = document.createElement('div');
+        templateNode.innerText = val;
+        templateNode.className = childClass;
+        template.append(templateNode);
+      });
+    })
   )();
 };
 
@@ -78,12 +94,33 @@ class RenderEngine {
         currentNodeId = renderKey;
         currentNode = $(`[${currentNodeId}]`)[0] as HTMLElement;
         currentNode.innerHTML = '';
+      } else if (/^\$map-[a-zA-Z]+-?[a-zA-Z-]*$/.test(renderKey)) {
+        const metaString = renderKey.substring(5);
+        const seperatorIndex = metaString.indexOf('-');
+        const stateId = metaString.substring(0, seperatorIndex);
+        const className = metaString.substring(seperatorIndex + 1);
+        const stateValue = StateHandler.getState()[stateId];
+        if (isNot(type(stateValue[Symbol.iterator]), types.function))
+          throw new BeanError(
+            'Value is not iterable',
+            ErrorCode.TYPE_IS_NOT_ITERABLE
+          );
+        const templateContainer = document.createElement('div');
+        templateContainer.className = `${stateId}-template`;
+        templateContainer.setAttribute('child-class', className);
+        for (const value of stateValue) {
+          const templateNode = document.createElement('div');
+          templateNode.innerText = value;
+          templateNode.className = className;
+          templateContainer.append(templateNode);
+        }
+        currentNode.append(templateContainer);
       } else if (/^\$[a-z-]+$/.test(renderKey)) {
         const stateId = renderKey.slice(1);
         const value = memory[stateId];
         const stateFragment = document.createElement('span');
         stateFragment.setAttribute(stateId, '');
-        stateFragment.innerText = JSON.stringify(value);
+        stateFragment.innerText = value;
         currentNode.append(stateFragment);
       } else {
         currentNode.append(document.createTextNode(renderKey));

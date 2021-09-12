@@ -72,8 +72,9 @@ export const onCond = (cond: boolean, f: GenericFunction) =>
   (cond && ((...args: any[]) => f(...args))) || (() => null);
 import { customAlphabet } from 'nanoid';
 const alphabet = '1234567890abcdefghijklmnopqrstuvwxyz';
-export const getUUID = () => `state-${customAlphabet(alphabet, 18)()}`;
-export const validate = (str: string) => /^state-[a-z0-9-]{18}$/.test(str);
+export const getUUID = (stateId: string) =>
+  `${stateId}-${customAlphabet(alphabet, 18)()}`;
+export const validate = (str: string) => /^\w+-[a-z0-9-]{18}$/.test(str);
 
 const Colors = {
   log: '#4895ef',

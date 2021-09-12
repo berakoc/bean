@@ -3,6 +3,7 @@ import { BiFunction, curry, GenericFunction, Indexable } from './common';
 export type Listener = Record<string | symbol, GenericFunction<void>>;
 
 const listeners = {};
+
 export const getGlobalListener: BiFunction<
   Listener,
   string | symbol,
@@ -11,6 +12,7 @@ export const getGlobalListener: BiFunction<
   listeners: Listener,
   listenerName: string | symbol
 ): GenericFunction<void> => listeners[listenerName]!;
+
 export const getStaticGlobalListener = (listenerName: string | symbol) =>
   curry<
     Listener,
@@ -18,6 +20,7 @@ export const getStaticGlobalListener = (listenerName: string | symbol) =>
     GenericFunction<void>,
     BiFunction<Listener, string | symbol, GenericFunction<void>>
   >(getGlobalListener)(listeners)(listenerName);
+
 export const ListenerRegistery = (() => {
   const listeners: Indexable = {};
   return {

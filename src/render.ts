@@ -6,6 +6,7 @@ import {
   Once,
   validate,
   onCond,
+  logger,
 } from './common';
 import { getGlobalListener, Listener, ListenerRegistery } from './listener';
 import {
@@ -88,6 +89,7 @@ class RenderEngine {
         currentNode.append(document.createTextNode(renderKey));
       }
     });
+    logger.debug('Initial view update is completed');
   }
 
   @Once()
@@ -111,6 +113,7 @@ class RenderEngine {
         });
       });
     });
+    logger.debug('Actions are successfully bound');
   }
 
   @Once()
@@ -140,6 +143,7 @@ class RenderEngine {
         });
       });
     });
+    logger.debug('Two way data binding is enabled');
   }
 
   static executeRenderProcess = () =>
@@ -162,6 +166,8 @@ const bootstrap = () => {
       );
   };
   setGlobals();
+  logger.log('Globals are injected');
+  logger.warn('Inject listeners using setBeanListeners method');
 };
 
 export default bootstrap;

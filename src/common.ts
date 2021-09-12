@@ -74,3 +74,26 @@ import { customAlphabet } from 'nanoid';
 const alphabet = '1234567890abcdefghijklmnopqrstuvwxyz';
 export const getUUID = () => `state-${customAlphabet(alphabet, 18)()}`;
 export const validate = (str: string) => /^state-[a-z0-9-]{18}$/.test(str);
+
+const Colors = {
+  log: '#4895ef',
+  warn: '#f48c06',
+  error: '#e63946',
+  debug: '#04e762',
+  info: '#9b5de5',
+} as const;
+type Logger = (message: string) => void;
+const customLogger =
+  (color: typeof Colors[keyof typeof Colors]): Logger =>
+  (message) =>
+    console.log(
+      `%c${message}`,
+      `background-color: white; border: 1px solid ${color}; color: ${color}; border-radius: 2px; padding: 4px 8px;`
+    );
+export const logger = {
+  log: customLogger(Colors.log),
+  warn: customLogger(Colors.warn),
+  error: customLogger(Colors.error),
+  debug: customLogger(Colors.debug),
+  info: customLogger(Colors.info),
+} as const;

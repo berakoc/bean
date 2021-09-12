@@ -35,16 +35,16 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
         r = Object.keys(n);
     if (u(e.length, r.length)) return !1;
 
-    for (var i = !0, f = 0, p = e; f < p.length; f++) {
-      var d = p[f],
-          g = t[d],
-          v = n[d];
+    for (var i = !0, f = 0, d = e; f < d.length; f++) {
+      var p = d[f],
+          g = t[p],
+          v = n[p];
       if (i = i && l(o(a(g), c), o(a(v), c)) ? s(g, v) : o(g, v), o(i, !1)) return i;
     }
 
     return i;
   },
-      p = function p() {
+      d = function d() {
     var t,
         n = !1;
     return function (e, r, i) {
@@ -58,7 +58,7 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       }, i;
     };
   },
-      d = function d(t, n) {
+      p = function p(t, n) {
     return t && function () {
       for (var t = [], e = 0; e < arguments.length; e++) {
         t[e] = arguments[e];
@@ -69,7 +69,19 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       return null;
     };
   },
-      g = (r = {}, {
+      g = function g(t) {
+    return function (n) {
+      return console.log("%c" + n, "background-color: white; border: 1px solid " + t + "; color: " + t + "; border-radius: 2px; padding: 4px 8px;");
+    };
+  },
+      v = {
+    log: g("#4895ef"),
+    warn: g("#f48c06"),
+    error: g("#e63946"),
+    debug: g("#04e762"),
+    info: g("#9b5de5")
+  },
+      h = (r = {}, {
     getListeners: function getListeners() {
       return r;
     },
@@ -77,8 +89,8 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       return r[t] = n;
     }
   }),
-      _v = function v() {
-    return (_v = Object.assign || function (t) {
+      _b = function b() {
+    return (_b = Object.assign || function (t) {
       for (var n, e = 1, r = arguments.length; e < r; e++) {
         for (var i in n = arguments[e]) {
           Object.prototype.hasOwnProperty.call(n, i) && (t[i] = n[i]);
@@ -88,13 +100,13 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       return t;
     }).apply(this, arguments);
   },
-      h = (n = {}, e = !0, {
+      y = (n = {}, e = !0, {
     getState: function getState() {
       return n;
     },
     setState: function setState(t, r) {
-      var i, f, p;
-      f = n[t], p = r, (l(o(a(f), c), o(a(p), c)) ? !s(f, p) : u(f, p)) ? (n = _v(_v({}, n), ((i = {})[t] = r, i)), e = !0) : e = !1;
+      var i, f, d;
+      f = n[t], d = r, (l(o(a(f), c), o(a(d), c)) ? !s(f, d) : u(f, d)) ? (n = _b(_b({}, n), ((i = {})[t] = r, i)), e = !0) : e = !1;
     },
 
     get shouldUpdate() {
@@ -102,10 +114,10 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     }
 
   }),
-      y = function y(t) {
+      w = function w(t) {
     return t.getAttribute("state");
   },
-      b = function b(t, n, e, r) {
+      j = function j(t, n, e, r) {
     var i,
         o = arguments.length,
         u = o < 3 ? n : null === r ? r = Object.getOwnPropertyDescriptor(n, e) : r;
@@ -120,14 +132,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
     }
     return t.concat(r || Array.prototype.slice.call(n));
   },
-      E = function E(n) {
+      A = function A(n) {
     var e = {},
         r = [];
     return n.forEach(function (n) {
       var o = n,
-          u = y(o),
+          u = w(o),
           c = f(o.getAttribute("init"));
-      h.setState(u, c), e[u] = c, i("[inject]", o).forEach(function (n) {
+      y.setState(u, c), e[u] = c, i("[inject]", o).forEach(function (n) {
         var e = "state-" + function (t, n, e) {
           var r = (2 << Math.log(t.length - 1) / Math.LN2) - 1,
               i = -~(1.6 * r * n / t.length);
@@ -149,37 +161,37 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       });
     }), [e, r];
   },
-      j = function j(t, n) {
-    var e = h.getState()[n],
-        r = h.shouldUpdate;
-    d(r, function () {
+      E = function E(t, n) {
+    var e = y.getState()[n],
+        r = y.shouldUpdate;
+    p(r, function () {
       return i("[" + n + "]", t).forEach(function (t) {
         return t.innerText = JSON.stringify(e);
       });
-    })(), d(r, function () {
+    })(), p(r, function () {
       return i("[bind-" + n + "]", t).forEach(function (t) {
         return t.value = e;
       });
     })();
   },
-      A = function A(t, n, e) {
+      S = function S(t, n, e) {
     return function (t, n) {
       return t[n];
-    }(g.getListeners(), t).apply(void 0, O(O([], (r = function r(t) {
+    }(h.getListeners(), t).apply(void 0, O(O([], (r = function r(t) {
       return t[n];
     }, i = n, [function () {
-      return r(h.getState());
+      return r(y.getState());
     }, function (t) {
-      return h.setState(i, t);
+      return y.setState(i, t);
     }]), !1), [e], !1));
     var r, i;
   },
-      S = function () {
+      x = function () {
     function t() {}
 
     return t.renderInitialView = function (t) {
       var n,
-          e = E(t),
+          e = A(t),
           r = e[0];
       e[1].forEach(function (t) {
         if (/^state-[a-z0-9-]{18}$/.test(t)) (n = i("[" + t + "]")[0]).innerHTML = "";else if (/^\$[a-z-]+$/.test(t)) {
@@ -188,11 +200,11 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               u = document.createElement("span");
           u.setAttribute(e, ""), u.innerText = JSON.stringify(o), n.append(u);
         } else n.append(document.createTextNode(t));
-      });
+      }), v.debug("Initial view update is completed");
     }, t.handleActions = function (t) {
       t.forEach(function (t) {
         var n = t,
-            e = y(n),
+            e = w(n),
             r = "action-" + e;
         i("[" + r + "]", n).forEach(function (t) {
           var i = f(t.getAttribute(r)),
@@ -200,22 +212,22 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
               u = i[1],
               c = i[2];
           t.addEventListener(u, function () {
-            A(o, e, h.getState()[c]), j(n, e);
+            S(o, e, y.getState()[c]), E(n, e);
           });
         });
-      });
+      }), v.debug("Actions are successfully bound");
     }, t.applyInputBinds = function (t) {
       t.forEach(function (t) {
-        var n = y(t);
+        var n = w(t);
         i("[bind-" + n + "]").forEach(function (e) {
           var r = Symbol("@@bind-" + n);
-          g.getListeners()[r] = function (t, n, r) {
+          h.getListeners()[r] = function (t, n, r) {
             n(r), e.value = String(r);
           }, e.addEventListener("input", function () {
-            A(r, n, e.value), j(t, n);
+            S(r, n, e.value), E(t, n);
           });
         });
-      });
+      }), v.debug("Two way data binding is enabled");
     }, t.executeRenderProcess = function () {
       return function (t) {
         for (var n = [], e = 1; e < arguments.length; e++) {
@@ -228,14 +240,14 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
       }(function () {
         return i("[bean]");
       }, t.renderInitialView, t.handleActions, t.applyInputBinds);
-    }, b([p()], t, "renderInitialView", null), b([p()], t, "handleActions", null), b([p()], t, "applyInputBinds", null), t;
+    }, j([d()], t, "renderInitialView", null), j([d()], t, "handleActions", null), j([d()], t, "applyInputBinds", null), t;
   }();
 
   window.bootstrap = function () {
-    S.executeRenderProcess(), window.setBeanListeners = function (t) {
+    x.executeRenderProcess(), window.setBeanListeners = function (t) {
       return Object.keys(t).forEach(function (n) {
-        return g.getListeners()[n] = t[n];
+        return h.getListeners()[n] = t[n];
       });
-    };
-  }, console.log("%cBean is ready!", "background-color: #7209b7; color: white; border-radius: 2px; padding: 4px 8px;");
+    }, v.log("Globals are injected"), v.warn("Inject listeners using setBeanListeners method");
+  }, v.info("Bean is ready!");
 })();
